@@ -19,6 +19,27 @@ use Symfony\Component\Process\ProcessBuilder;
  */
 class GitVersionControl {
     /**
+     * Recurse into submodules: no.
+     *
+     * @var integer
+     */
+    const RECURSE_NO = 0;
+
+    /**
+     * Recurse into submodules: yes.
+     *
+     * @var integer
+     */
+    const RECURSE_YES = 1;
+
+    /**
+     * Recurse into submodules: on-demand.
+     *
+     * @var integer
+     */
+    const RECURSE_ON_DEMAND = 2;
+
+    /**
      * The repository's on-disk location.
      *
      * @var string
@@ -105,12 +126,24 @@ class GitVersionControl {
      * Fetch references from the specified remote.
      *
      * @param string  $remote
+     * @param integer $recurseSubmodules
      * @param boolean $withTags
      *
      * @return void
      */
-    public function fetch($remote, $withTags=true) {
-        $process = $this->getProcess(['fetch', $remote]);
+    public function fetch($remote, $recurseSubmodules=null, $withTags=null) {
+        if ($recurseSubmodules === null) {
+            $recurseSubmodules = static::RECURSE_NO;
+        }
+        if ($withTags === null) {
+            $withTags = true;
+        }
+
+        $process = $this->getProcess([
+            'fetch',
+            $remote,
+            $this->getRecurseSubmodulesParameter($recurseSubmodules),
+        ]);
         $process->run();
 
         $this->ensureSuccess(
@@ -123,6 +156,35 @@ class GitVersionControl {
             $this->ensureSuccess(
                     $process, VersionControlException::CODE_FETCH_FAILED);
         }
+    }
+
+    /**
+     * Update submodules.
+     *
+     * @param boolean $withInit Initialise from .gitmodules (--init).
+     *
+     * @return void
+     *
+     * @throws \ComponentManager\Exception\VersionControlException
+     */
+    public function submoduleUpdate($withInit=null) {
+        if ($withInit === null) {
+            $withInit = false;
+        }
+
+        $arguments = [
+            'submodule',
+            'update',
+        ];
+        if ($withInit) {
+            $arguments[] = '--init';
+        }
+
+        $process = $this->getProcess($arguments);
+        $process->run();
+
+        $this->ensureSuccess(
+                $process, VersionControlException::CODE_FETCH_FAILED);
     }
 
     /**
@@ -159,7 +221,7 @@ class GitVersionControl {
     /**
      * Initialise Git repository.
      *
-     * @throws VersionControlException
+     * @throws \ComponentManager\Exception\VersionControlException
      * @throws \ComponentManager\Exception\PlatformException
      */
     public function init() {
@@ -187,5 +249,38 @@ class GitVersionControl {
                 $process, VersionControlException::CODE_REV_PARSE_FAILED);
 
         return trim($process->getOutput());
+    }
+
+    /**
+     * Get recurse parameter.
+     *
+     * @param integer $recurse One of the submodule recursion values declared
+     *                         in the static::RECURSE_* constants.
+     *
+     * @return string
+     *
+     * @throws \ComponentManager\Exception\VersionControlException
+     */
+    protected function getRecurseSubmodulesParameter($recurse) {
+        switch ($recurse) {
+            case static::RECURSE_NO:
+                $result = 'no';
+                break;
+
+            case static::RECURSE_YES:
+                $result = 'yes';
+                break;
+
+            case static::RECURSE_ON_DEMAND:
+                $result = 'on-demand';
+                break;
+
+            default:
+                throw new VersionControlException(sprintf(
+                        'Invalid $recurse value %s', $recurse),
+                        VersionControlException::CODE_INIT_FAILED);
+        }
+
+        return sprintf('--recurse-submodules=%s', $result);
     }
 }

@@ -94,6 +94,7 @@ class GitPackageSource extends AbstractPackageSource
                     $repository->addRemote(new GitRemote('origin', $repositoryUri));
                     $repository->fetch('origin');
                     $repository->checkout($installRef);
+                    $repository->submoduleUpdate(true);
                     $repository->checkoutIndex(
                             $indexPath . $this->platform->getDirectorySeparator());
                     $resolvedComponentVersion->setFinalVersion(
