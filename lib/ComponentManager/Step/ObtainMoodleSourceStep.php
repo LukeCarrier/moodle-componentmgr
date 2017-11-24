@@ -66,12 +66,7 @@ class ObtainMoodleSourceStep implements Step {
      * @param PackageTask $task
      */
     public function execute($task, LoggerInterface $logger) {
-        $uri = $task->getMoodleVersion()->getDownloadUri();
-
-        $logger->info('Downloading Moodle', [
-            'uri'     => $uri,
-            'archive' => $this->archive,
-        ]);
+        $task->getMoodleVersion();
 
         $message = $this->httpClient->createRequest(Request::METHOD_GET, $uri);
         $response = $this->httpClient->sendRequest($message);
