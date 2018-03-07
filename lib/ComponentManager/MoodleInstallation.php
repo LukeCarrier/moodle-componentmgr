@@ -176,11 +176,31 @@ class MoodleInstallation {
     public function getPluginTypes() {
         $this->assertState(static::STATE_READY);
 
+        $pluginMgr = $this->makePluginManager();
+        return $pluginMgr->get_plugin_types();
+    }
+
+    /**
+     * Get missing plugin dependencies.
+     *
+     * @return
+     */
+    public function getMissingPluginDependencies() {
+        $this->assertState(static::STATE_READY);
+
+        $pluginMgr = $this->makePluginManager();
+        return $pluginMgr->missing_dependencies();
+    }
+
+    /**
+     * Obtain the singleton instance of the Moodle plugin manager.
+     *
+     * @return core_plugin_manager
+     */
+    protected function makePluginManager() {
         $CFG = $this->config;
         require_once "{$CFG->dirroot}/lib/classes/plugin_manager.php";
 
-        $pluginMgr = core_plugin_manager::instance();
-
-        return $pluginMgr->get_plugin_types();
+        return core_plugin_manager::instance();
     }
 }

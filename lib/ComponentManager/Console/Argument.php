@@ -36,6 +36,13 @@ class Argument {
     const ARGUMENT_ACTION_LIST_PLUGIN_TYPES = 'list-plugin-types';
 
     /**
+     * Argument value: verify plugin dependencies.
+     *
+     * @var string
+     */
+    const ARGUMENT_ACTION_LIST_MISSING_PLUGIN_DEPENDENCIES = 'list-missing-plugin-dependencies';
+
+    /**
      * Option: package format.
      *
      * @var string

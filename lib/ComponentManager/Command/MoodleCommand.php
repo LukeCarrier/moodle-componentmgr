@@ -67,6 +67,11 @@ HELP;
             case Argument::ARGUMENT_ACTION_LIST_PLUGIN_TYPES:
                 $result = $moodle->getPluginTypes();
                 break;
+
+            case Argument::ARGUMENT_ACTION_LIST_MISSING_PLUGIN_DEPENDENCIES:
+                $result = $moodle->getMissingPluginDependencies();
+                break;
+
             default:
                 throw new MoodleException(
                         sprintf('Invalid action "%s"', $action),
